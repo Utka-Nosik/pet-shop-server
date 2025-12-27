@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Watterson's Weather</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background: url('https://vignette.wikia.nocookie.net/theamazingworldofgumball/images/7/7e/WattersonsHouse_GumballsBedroom.jpg/revision/latest?cb=20150409044007') no-repeat center center fixed; 
+            background-size: cover;
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(to top, #289adc, transparent);
+            z-index: -1;
+        }
+
+        .container {
+            background-color: #fdfbf7;
+            background-image: linear-gradient(#e1e1e1 1px, transparent 1px);
+            background-size: 100% 1.5em;
+            width: 90%;
+            max-width: 550px;
+            padding: 40px;
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.3);
+            transform: rotate(-2deg); 
+            border: 1px solid #ccc;
+            position: relative;
+        }
+
+        .tape {
+            background-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            width: 130px;
+            height: 40px;
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%) rotate(2deg);
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: 'Permanent Marker', cursive; 
+            text-align: center;
+            font-size: 3rem;
+            color: #333;
+            margin-top: 10px;
+            text-shadow: 2px 2px 0px #ff9f43; 
+            line-height: 1;
+        }
+
+        .search-wrapper {
+            position: relative; 
+            margin-bottom: 25px;
+            z-index: 50; 
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 4px solid #333;
+            border-radius: 10px;
+            font-family: 'Permanent Marker', cursive;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .suggestions-list {
+            position: absolute;
+            top: 100%; 
+            left: 0;
+            right: 0;
+            background: white;
+            border: 4px solid #333;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000; 
+            display: none; 
+            box-shadow: 0 10px 10px rgba(0,0,0,0.2);
+        }
+
+        .suggestions-list li {
+            padding: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            color: #333;
+            background: #fff;
+        }
+
+        .suggestions-list li:hover {
+            background-color: #fffa65; 
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.5rem;
+            background: #00a8ff; 
+            color: white;
+            border: 4px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 5px 5px 0 #333;
+        }
+
+        button:active {
+            box-shadow: 0 0 0 #333;
+            transform: translate(5px, 5px);
+        }
+
+        #result {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .fact-box {
+            border: 3px solid #333;
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.1);
+        }
+
+        .weather-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ff9f43; 
+            color: #fff;
+            padding: 10px;
+            border: 3px solid #333;
+            margin-bottom: -3px; 
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.4rem;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 5px;
+        }
+
+        .stat-label { font-weight: bold; color: #555; }
+        .stat-value { font-weight: bold; color: #000; }
+
+        .big-temp {
+            font-size: 4rem;
+            font-family: 'Permanent Marker', cursive;
+            color: #333;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        #flag {
+            border: 3px solid #333;
+            display: block;
+            margin: 10px auto;
+            max-width: 100px;
+        }
+
+        .sticker {
+            position: fixed; 
+            z-index: 9999;   
+            width: 250px;
+            pointer-events: none; 
+            
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .sticker-gumball { 
+            bottom: -20px; 
+            right: -20px; 
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(-6deg); }
+            50% { transform: translateY(-15px) rotate(-3deg); } 
+            100% { transform: translateY(0px) rotate(-6deg); }
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <img src="https://i.pinimg.com/originals/51/04/e0/5104e0bae7b27ff2cfcccf6ec8edd0f3.png" class="sticker sticker-gumball" alt="Gumball">
+    
+    <div class="container">
+        <div class="tape"></div>
+        <h1>ELMORE WEATHER</h1>
+
+        <div class="search-wrapper">
+            <input type="text" id="cityInput" placeholder="Write city here..." autocomplete="off">
+            <ul id="suggestions" class="suggestions-list"></ul>
+        </div>
+
+        <button onclick="getWeather()">SEARCH!</button>
+
+        <div id="result">
+            
+            <div class="weather-header">☁️ WEATHER REPORT</div>
+            <div class="fact-box">
+                <div class="big-temp"><span id="temp"></span>°C</div>
+                <div style="text-align: center; font-style: italic; margin-bottom: 15px;">"<span id="desc"></span>"</div>
+                
+                <div class="stat-row">
+                    <span class="stat-label">Feels Like:</span>
+                    <span class="stat-value"><span id="feels"></span>°C</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Wind Speed:</span>
+                    <span class="stat-value"><span id="wind"></span> m/s</span>
+                </div>
+                 <div class="stat-row">
+                    <span class="stat-label">Rain (3h):</span>
+                    <span class="stat-value"><span id="rain"></span> mm</span>
+                </div>
+            </div>
+
+            <div class="weather-header" style="background: #f87ad9;">🌍 COUNTRY FACTS</div>
+            <div class="fact-box">
+                <div style="text-align: center;">
+                    <img id="flag" src="" alt="Flag">
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Capital:</span>
+                    <span class="stat-value" id="capital"></span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Region:</span>
+                    <span class="stat-value" id="region"></span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Population:</span>
+                    <span class="stat-value" id="population"></span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Currency:</span>
+                    <span class="stat-value" id="currency"></span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Language:</span>
+                    <span class="stat-value" id="language"></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('cityInput');
+        const list = document.getElementById('suggestions');
+
+        input.addEventListener('input', async () => {
+            const query = input.value.trim();
+            
+            if (query.length < 2) {
+                list.style.display = 'none';
+                return;
+            }
+
+            try {
+                const url = `https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=en&format=json`;
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                list.innerHTML = ''; 
+
+                if (data.results && data.results.length > 0) {
+                    list.style.display = 'block'; 
+                    
+                    data.results.forEach(city => {
+                        const li = document.createElement('li');
+                        
+                        const country = city.country ? `, ${city.country}` : '';
+                        li.textContent = `${city.name}${country}`;
+                        
+                        li.onclick = () => {
+                            input.value = city.name;
+                            list.style.display = 'none'; 
+                        };
+                        list.appendChild(li);
+                    });
+                } else {
+                    list.style.display = 'none';
+                }
+            } catch (e) {
+                console.error("Autocomplete failed:", e);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target !== input && e.target !== list) {
+                list.style.display = 'none';
+            }
+        });
+
+        async function getWeather() {
+            const city = input.value;
+            if(!city) return alert("Please type a city!");
+
+            try {
+                const res = await fetch(`/weather?city=${city}`);
+                const data = await res.json();
+
+                if(data.error) {
+                    alert(data.error); 
+                    return;
+                }
+
+                document.getElementById('temp').innerText = Math.round(data.weather.temperature);
+                document.getElementById('desc').innerText = data.weather.description;
+                document.getElementById('feels').innerText = Math.round(data.weather.feels_like);
+                document.getElementById('wind').innerText = data.weather.wind_speed;
+                document.getElementById('rain').innerText = data.weather.rain_volume;
+
+                const facts = data.country_facts;
+                document.getElementById('flag').src = facts.flag || ""; 
+                document.getElementById('capital').innerText = facts.capital || "N/A";
+                document.getElementById('region').innerText = facts.region || "N/A";
+                document.getElementById('population').innerText = facts.population ? facts.population.toLocaleString() : "N/A";
+                document.getElementById('currency').innerText = facts.currency ? `${facts.currency} (${facts.currency_symbol})` : "N/A";
+                document.getElementById('language').innerText = facts.languages || "N/A";
+
+                document.getElementById('result').style.display = 'block';
+
+            } catch (err) {
+                console.error(err);
+                alert("Error loading weather data");
+            }
+        }
+    </script>
+</body>
+</html>
